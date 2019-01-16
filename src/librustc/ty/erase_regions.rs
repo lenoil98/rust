@@ -21,6 +21,11 @@ impl<'a, 'gcx, 'tcx> TyCtxt<'a, 'gcx, 'tcx> {
     pub fn erase_regions<T>(self, value: &T) -> T
         where T : TypeFoldable<'tcx>
     {
+        // If there's nothing to erase avoid performing the query at all
+        if !value.has_erasable_regions() {
+            return value.clone();
+        }
+
         let value1 = value.fold_with(&mut RegionEraserVisitor { tcx: self });
         debug!("erase_regions({:?}) = {:?}", value, value1);
         value1
